@@ -18,7 +18,7 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #0a0a0a 100%);
-            color: #ffffff; /* Основной цвет текста — белый */
+            color: #ffffff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -47,18 +47,17 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            opacity: 1; /* Делаем видимой сразу, чтобы не исчезала */
+            opacity: 1;
             transform: translateY(0);
             transition: all 0.5s ease;
             text-align: center;
         }
 
-        /* ЖЁСТКО ФИКСИРУЕМ ЦВЕТ ТЕКСТА, ЧТОБЫ ОН НЕ СТАЛ НЕВИДИМЫМ */
         .card-header {
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 2px;
-            color: #b3b3b3 !important; /* Светло-серый заголовок */
+            color: #b3b3b3 !important;
             margin-bottom: 15px;
             font-weight: 600;
             display: block;
@@ -67,12 +66,12 @@
         .fact-text {
             font-size: 16px;
             line-height: 1.5;
-            color: #ffffff !important; /* Всегда чисто белый текст факта */
+            color: #ffffff !important;
             min-height: 60px;
             display: block;
         }
 
-        /* ТВОЯ ОБНОВЛЕННАЯ ЖИДКАЯ КНОПКА-КАПЛЯ */
+        /* КНОПКА-СФЕРА */
         .liquid-button {
             position: relative;
             width: 170px;
@@ -87,7 +86,7 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            color: #ffffff !important; /* Текст на кнопке всегда белый */
+            color: #ffffff !important;
             font-weight: 700;
             font-size: 12px;
             letter-spacing: 2px;
@@ -147,7 +146,7 @@
         .share-btn {
             width: 100%;
             background: #ffffff;
-            color: #000000 !important; /* Текст кнопки всегда черный */
+            color: #000000 !important;
             border: none;
             border-radius: 14px;
             padding: 14px;
@@ -159,7 +158,6 @@
             justify-content: center;
             margin-top: 20px;
             box-shadow: 0 10px 20px rgba(255, 255, 255, 0.05);
-            transition: background 0.2s;
         }
 
         .share-btn.visible {
@@ -173,7 +171,7 @@
 
         .footer-info {
             font-size: 11px;
-            color: rgba(255, 255, 255, 0.3) !important; /* Видимый серый цвет футера */
+            color: rgba(255, 255, 255, 0.3) !important;
             letter-spacing: 1px;
             margin-top: 10px;
             text-align: center;
@@ -192,7 +190,7 @@
         <div class="fact-card" id="factCard">
             <span class="card-header" id="cardCategory">Случайный факт</span>
             <span class="fact-text" id="factText">Нажми на сферу ниже, чтобы запустить генератор...</span>
-            <button class="share-btn" id="shareBtn">Переслать в чат</button>
+            <button class="share-btn" id="shareBtn">Поделиться фактом</button>
         </div>
 
         <button class="liquid-button" id="generateBtn">
@@ -204,13 +202,13 @@
     </div>
 
     <script>
-        // Инициализация TG WebApp
         const tg = window.Telegram.WebApp;
         if (tg) {
             tg.expand();
             tg.ready();
         }
 
+        // БОЛЬШАЯ БАЗА ДАННЫХ ФАКТОВ (Сюда можешь дописывать новые)
         const FACTS = [
             "Ученые доказали, что коты спят 16 часов в сутки, потому что втайне майнят криптовалюту в своей голове.",
             "Пингвины не летают только потому, что у них платный подписочный сервис на полеты, а они принципиально отказываются платить.",
@@ -229,7 +227,13 @@
             "Если долго смотреть на чипсы Принглс, усатый мужик с логотипа подмигнет тебе. Но только в 3 часа ночи.",
             "Наполеон Бонапарт носил руку за пазухой не из-за пафоса, он просто прятал там тамагочи, чтобы тот не умер во время битвы.",
             "Динозавры вымерли не от метеорита. Они просто решили сыграть в прятки в масштабах планеты и спрятались слишком хорошо.",
-            "Луна — это не спутник Земли, а гигантский диско-шар, оставленный пришельцами после грандиозной вечеринки миллиард лет назад."
+            "Луна — это не спутник Земли, а гигантский диско-шар, оставленный пришельцами после грандиозной вечеринки миллиард лет назад.",
+            "Первые будильники состояли из людей, которые ходили по улицам и плевали в окна горожан сушеным горохом, чтобы те проснулись.",
+            "Ленивцы умеют задерживать дыхание под водой дольше, чем дельфины, но забывают, зачем они вообще туда полезли.",
+            "Вплоть до 19 века кетчуп продавали в аптеках Америки как сертифицированное лекарство от облысения и несварения желудка.",
+            "Шотландия выбрала своим национальным животным единорога, просто чтобы позлить соседнюю Англию, у которой на гербе был скучный лев.",
+            "Слезы счастья и слезы грусти под микроскопом выглядят абсолютно по-разному, потому что у них разная плотность соли.",
+            "Каждый раз, когда ты открываешь банку с газировкой, один муравей в мире искренне верит, что где-то начался гром."
         ];
 
         const generateBtn = document.getElementById('generateBtn');
@@ -253,10 +257,12 @@
             shareBtn.classList.add('visible');
         });
 
+        // ИСПРАВЛЕННЫЙ ИНЛАЙН-МЕТОД ОТПРАВКИ
         shareBtn.addEventListener('click', () => {
             if (currentFact && tg) {
-                const formattedMessage = `🧠 *Случайный факт из Mini App:*\n\n${currentFact}\n\n_❌ Гарантия точности — 0%_`;
-                tg.sendData(formattedMessage);
+                const textToSend = `🔮 Из Mini App: ${currentFact}`;
+                // Метод открывает выбор чата и подставляет текст
+                tg.switchInlineQuery(textToSend, ["users", "groups", "channels"]);
             }
         });
     </script>
