@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Факт-Оракул Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* БАЗОВЫЕ НАСТРОЙКИ ФОНА (ГЛУБОКИЙ ЧЕРНЫЙ МОНОХРОМ) */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #0a0a0a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        /* КОНТЕЙНЕР ПРИЛОЖЕНИЯ С ЭФФЕКТОМ ПОЯВЛЕНИЯ */
+        .app-container {
+            width: 100%;
+            max-width: 360px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            animation: fadeInApp 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+        }
+
+        /* СТИЛЬ СТЕКЛЯННОЙ КАРТОЧКИ С ФАКТОМ (ВЫТЕКАЕТ СВЕРХУ) */
+        .fact-card {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.7),
+                inset 0 1px 2px rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            opacity: 0;
+            transform: translateY(-30px) scale(0.95);
+            pointer-events: none;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .fact-card.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        .card-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .fact-text {
+            font-size: 16px;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.95);
+            min-height: 60px;
+        }
+
+        /* ГЛАВНАЯ КНОПКА - ЖИДКАЯ КАПЛЯ (LIQUID GLASS) */
+        .liquid-button {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            outline: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            /* Внутренние и внешние тени для объема жидкого стекла */
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.6),
+                inset 0 4px 8px rgba(255, 255, 255, 0.3),
+                inset 0 -4px 12px rgba(0, 0, 0, 0.4),
+                inset -4px 0 8px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            /* Анимация плавного покачивания капли в простое */
+            animation: liquidFloat 4s ease-in-out infinite;
+            transition: border 0.3s, box-shadow 0.3s;
+        }
+
+        /* ПОСТОЯННО БЕГАЮЩИЙ БЛИК НА КНОПКЕ (IDLE SHINE) */
+        .liquid-button::before {
+            content: '';
+            position: absolute;
+            top: 8%;
+            left: 15%;
+            width: 70%;
+            height: 30%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%);
+            border-radius: 50% / 40%;
+            pointer-events: none;
+            filter: blur(1px);
+        }
+
+        /* РЕЗИНОВЫЙ ЖИДКИЙ КЛИК (PRESS ANIMATION) */
+        .liquid-button:active {
+            transform: scale(0.92);
+            box-shadow: 
+                0 5px 15px rgba(0, 0, 0, 0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2),
+                inset 0 -2px 6px rgba(0, 0, 0, 0.6),
+                inset 0 10px 20px rgba(0, 0, 0, 0.5); /* Затемнение глубины при нажатии */
+            animation: none; /* Отключаем покачивание при клике */
+            transition: transform 0.1s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .btn-icon {
+            font-size: 28px;
+            filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.2));
+            transition: transform 0.3s ease;
+        }
+
+        .liquid-button:active .btn-icon {
+            transform: scale(0.85);
+        }
+
+        /* СТЕКЛЯННАЯ КНОПКА «ПОДЕЛИТЬСЯ» */
+        .share-btn {
+            width: 100%;
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.5s ease;
+        }
+
+        .share-btn.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .share-btn:active {
+            transform: scale(0.97);
+            background: #e5e5e5;
+        }
+
+        /* ПОДПИСЬ ВНИЗУ ГАРАНТИИ */
+        .footer-info {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.2);
+            letter-spacing: 1px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* ОПИСАНИЕ ВСЕХ АНИМАЦИЙ НА ЧИСТОМ CSS */
+        @keyframes fadeInApp {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes liquidFloat {
+            0%, 100% {
+                border-radius: 50%;
+                transform: translateY(0) rotate(0deg);
+            }
+            33% {
+                border-radius: 48% 52% 51% 49% / 51% 48% 52% 49%;
+                transform: translateY(-4px) rotate(1deg);
+            }
+            66% {
+                border-radius: 52% 48% 49% 51% / 49% 52% 48% 51%;
+                transform: translateY(2px) rotate(-1deg);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div class="fact-card" id="factCard">
+            <div class="card-header" id="cardCategory">Случайный факт</div>
+            <div class="fact-text" id="factText">Нажми на каплю ниже, чтобы запустить генератор...</div>
+            
+            <button class="share-btn" id="shareBtn">
+                <span>Переслать в чат</span>
+            </button>
+        </div>
+
+        <button class="liquid-button" id="generateBtn">
+            <div class="btn-icon">🔮</div>
+            <span>Тыкни</span>
+        </button>
+
+        <div class="footer-info">ГАРАНТИЯ ТОЧНОСТИ — 0%</div>
+    </div>
+
+    <script>
+        // Инициализируем Telegram WebApp API
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем мини-апп на весь экран
+
+        // Наша база фактов (переехала прямо в фронтенд для мгновенной работы)
+        const FACTS = [
+            "Ученые доказали, что коты спят 16 часов в сутки, потому что втайне майнят криптовалюту в своей голове.",
+            "Пингвины не летают только потому, что у них платный подписочный сервис на полеты, а они принципиально отказываются платить.",
+            "Хамелеоны меняют цвет не для маскировки, а потому что не могут определиться, какой фильтр в инстаграме им больше подходит.",
+            "Домашние хомяки на самом деле бегают в колесе, чтобы вырабатывать электричество для питания секретных серверов Википедии.",
+            "Куры — это выжившие динозавры, которые притворяются глупыми, чтобы мы перестали их бояться и кормили зерном.",
+            "Лягушки квакают не просто так: они работают живыми ретрансляторами и передают сигналы точного времени для подземных кротов.",
+            "Жирафы на самом деле короткие, просто они постоянно ходят на невидимых ходулях, чтобы казаться выше и пафоснее остальных зверей.",
+            "Собаки приносят палку не ради игры. Это древний налог, который они собирают с людей для постройки гигантского деревянного мегаполиса.",
+            "Если одновременно нажать Ctrl+Alt+Delete и громко чихнуть, Windows сделает скрытый скриншот твоих мыслей.",
+            "Обновления на телефоне весят так много, потому что разработчики незаметно зашивают туда рецепты бабушкиных блинов.",
+            "Наушники в кармане запутываются сами по себе, потому что ночью они устраивают закрытые брейк-данс баттлы.",
+            "Твой телефон вибрирует в кармане без уведомлений, потому что ему скучно и он просто хочет привлечь твое внимание.",
+            "Пицца круглая, коробка квадратная, а кусочки треугольные, потому что геометрию для кулинаров придумывал безумный шляпник.",
+            "Дырки в сыре маасдам проделывают специально обученные мыши-дизайнеры по контракту с итальянскими сыроварнями.",
+            "Если долго смотреть на чипсы Принглс, усатый мужик с логотипа подмигнет тебе. Но только в 3 часа ночи.",
+            "Наполеон Бонапарт носил руку за пазухой не из-за пафоса, он просто прятал там тамагочи, чтобы тот не умер во время битвы.",
+            "Динозавры вымерли не от метеорита. Они просто решили сыграть в прятки в масштабах планеты и спрятались слишком хорошо.",
+            "Луна — это не спутник Земли, а гигантский диско-шар, оставленный пришельцами после грандиозной вечеринки миллиард лет назад."
+        ]; // (Здесь урезанный список для примера, ты можешь вставить хоть все 200 прямо в массив!)
+
+        const generateBtn = document.getElementById('generateBtn');
+        const factCard = document.getElementById('factCard');
+        const factText = document.getElementById('factText');
+        const cardCategory = document.getElementById('cardCategory');
+        const shareBtn = document.getElementById('shareBtn');
+
+        let currentFact = "";
+
+        // Обработка клика на каплю жидкого стекла
+        generateBtn.addEventListener('click', () => {
+            // Вибрация на телефоне (haptic feedback), если поддерживается Telegram
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+
+            // Выбираем случайный факт
+            const randomIndex = Math.floor(Math.random() * FACTS.length);
+            currentFact = FACTS[randomIndex];
+
+            // Плавно прячем старый текст, если он был
+            factCard.classList.remove('active');
+            shareBtn.classList.remove('visible');
+
+            setTimeout(() => {
+                // Меняем контент
+                factText.innerText = currentFact;
+                cardCategory.innerText = "Сгенерированная ложь";
+                
+                // Включаем анимацию вытекания карточки и появления кнопки шера
+                factCard.classList.add('active');
+                shareBtn.classList.add('visible');
+            }, 300);
+        });
+
+        // Кнопка пересылки факта в ТГ чат через встроенную функцию Mini App
+        shareBtn.addEventListener('click', () => {
+            if (currentFact) {
+                const formattedMessage = `🧠 *Случайный факт из Mini App:*\n\n${currentFact}\n\n_❌ Гарантия точности — 0%_`;
+                
+                // Метод ТГ, который открывает выбор чата и отправляет туда готовый текст
+                tg.sendData(formattedMessage); 
+                // Или альтернативный вариант для инлайн-шера:
+                // tg.openTelegramLink(`https://t.me/share/url?url=&text=${encodeURIComponent(formattedMessage)}`);
+            }
+        });
+    </script>
+</body>
+</html>
