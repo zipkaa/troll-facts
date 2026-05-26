@@ -1,4 +1,85 @@
-/* ОБНОВЛЕННАЯ ЖИДКАЯ КНОПКА-КАПЛЯ (ПОД СТИЛЬ TOKYO GHOUL / DARK PREMIUM) */
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Факт-Оракул Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* БАЗОВЫЕ НАСТРОЙКИ ФОНА (ГЛУБОКИЙ ЧЕРНЫЙ МОНОХРОМ) */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #0a0a0a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        /* КОНТЕЙНЕР ПРИЛОЖЕНИЯ С ЭФФЕКТОМ ПОЯВЛЕНИЯ */
+        .app-container {
+            width: 100%;
+            max-width: 360px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 35px;
+            animation: fadeInApp 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+        }
+
+        /* СТИЛЬ СТЕКЛЯННОЙ КАРТОЧКИ С ФАКТОМ (ВЫТЕКАЕТ СВЕРХУ) */
+        .fact-card {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.7),
+                inset 0 1px 2px rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            opacity: 0;
+            transform: translateY(-30px) scale(0.95);
+            pointer-events: none;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .fact-card.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        .card-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .fact-text {
+            font-size: 16px;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.95);
+            min-height: 60px;
+        }
+
+        /* ОБНОВЛЕННАЯ ЖИДКАЯ КНОПКА-КАПЛЯ (ПОД СТИЛЬ TOKYO GHOUL / DARK PREMIUM) */
         .liquid-button {
             position: relative;
             width: 170px;
@@ -36,7 +117,7 @@
             transition: all 0.4s ease;
         }
 
-        /* КРУПНЫЙ, РАЗМЫТЫЙ ВЕРХНИЙ БЛИК */
+        /* КРУПНЫЙ, МЯГКИЙ ВЕРХНИЙ БЛИК (БЕЗ ПЛАСТИКОВОГО ЭФФЕКТА) */
         .liquid-button::before {
             content: '';
             position: absolute;
@@ -47,10 +128,10 @@
             background: linear-gradient(to bottom, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 100%);
             border-radius: 50% / 40%;
             pointer-events: none;
-            filter: blur(2px); /* Размываем края, чтобы убрать эффект дешевого пластика */
+            filter: blur(2px); /* Размываем края, убирая дешевый глянец */
         }
 
-        /* ДОПОЛНИТЕЛЬНЫЙ НИЖНИЙ ПОДСВЕТ ДЛЯ ЭФФЕКТА СТЕКЛА */
+        /* ДОПОЛНИТЕЛЬНЫЙ НИЖНИЙ ПОДСВЕТ ДЛЯ ПРЕЛОМЛЕНИЯ СВЕТА ВНУТРИ СТЕКЛА */
         .liquid-button::after {
             content: '';
             position: absolute;
@@ -64,7 +145,7 @@
             filter: blur(4px);
         }
 
-        /* ЭФФЕКТ ПРИ НАВЕДЕНИИ / ОЖИДАНИИ */
+        /* ЭФФЕКТ ПРИ СВЕЧЕНИИ / НАВЕДЕНИИ */
         .liquid-button:hover {
             border-color: rgba(255, 255, 255, 0.4);
             box-shadow: 
@@ -74,36 +155,24 @@
                 0 0 25px rgba(255, 255, 255, 0.05);
         }
 
-        /* ИСПРАВЛЕННЫЙ ЖИДКИЙ КЛИК */
+        /* ИСПРАВЛЕННЫЙ РЕЗИНОВЫЙ КЛИК */
         .liquid-button:active {
             transform: scale(0.94);
             border-color: rgba(255, 255, 255, 0.15);
             box-shadow: 
                 0 10px 25px rgba(0, 0, 0, 0.5),
-                inset 0 0 40px rgba(0, 0, 0, 0.8), /* Глубокое внутреннее поглощение света */
+                inset 0 0 40px rgba(0, 0, 0, 0.8), /* Глубокое поглощение света внутри */
                 inset 0 4px 10px rgba(255, 255, 255, 0.05);
             animation: none;
             transition: transform 0.1s cubic-bezier(0.19, 1, 0.22, 1);
         }
 
-        /* СТИЛЬ ДЛЯ ИКОНКИ И ТЕКСТА ВНУТРИ КНОПКИ */
+        /* СТИЛЬ ДЛЯ ИКОНКИ ВНУТРИ КНОПКИ */
         .btn-icon {
             font-size: 32px;
-            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.25));
+            transition: transform 0.3s ease;
         }
 
-        /* ОБНОВЛЕННАЯ ТРАЕКТОРИЯ ИЗМЕНЕНИЯ ФОРМЫ (КАПЛЯ ЖИДКАЯ И РЕЗИНОВАЯ) */
-        @keyframes liquidFloat {
-            0%, 100% {
-                border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%;
-                transform: translateY(0) scale(1);
-            }
-            33% {
-                border-radius: 46% 54% 48% 52% / 53% 47% 53% 47%;
-                transform: translateY(-5px) scale(1.01);
-            }
-            66% {
-                border-radius: 54% 46% 52% 48% / 48% 52% 46% 54%;
-                transform: translateY(3px) scale(0.99);
-            }
-        }
+        .liquid-button:active .btn-icon {
+            transform:
