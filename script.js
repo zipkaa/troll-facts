@@ -1,6 +1,9 @@
-const tg = window.Telegram.WebApp;
+const tg = window.Telegram?.WebApp;
 
-tg.expand();
+if (tg) {
+    tg.expand();
+    tg.ready();
+}
 
 const factText = document.getElementById("fact");
 const generateBtn = document.getElementById("generate-btn");
@@ -11,7 +14,7 @@ const facts = [
     "Луна на самом деле сделана из просроченного сыра.",
     "90% людей забывают, зачем зашли в комнату. Остальные врут.",
     "Если кот смотрит в стену — там призрак.",
-    "Wi-Fi работает быстрее, если на него кричать.",
+    "Wi‑Fi работает быстрее, если на него кричать.",
     "Пельмени вкуснее после полуночи по законам физики.",
     "Комары выбирают жертву по музыкальному вкусу.",
     "Чем громче пакетик чипсов — тем вкуснее содержимое.",
@@ -19,36 +22,53 @@ const facts = [
     "Если долго смотреть на носки — они исчезают по одному."
 ];
 
+let currentFact = "";
+
+function vibrate(type = "medium") {
+    if (tg?.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred(type);
+    }
+}
+
 function generateFact() {
-    const randomFact =
-        facts[Math.floor(Math.random() * facts.length)];
+    const randomFact = facts[Math.floor(Math.random() * facts.length)];
+    currentFact = randomFact;
 
     factText.style.opacity = "0";
+    factText.style.transform = "translateY(8px) scale(0.98)";
 
     setTimeout(() => {
         factText.innerText = randomFact;
         factText.style.opacity = "1";
-    }, 200);
+        factText.style.transform = "translateY(0) scale(1)";
+    }, 180);
 
-    if (tg.HapticFeedback) {
-        tg.HapticFeedback.impactOccurred("medium");
-    }
+    vibrate("medium");
 }
 
-generateBtn.addEventListener("click", generateFact);
+function shareFact() {
+    const fact = (currentFact || factText.innerText || "").trim();
 
-sendBtn.addEventListener("click", () => {
-    const fact = factText.innerText.trim();
-
-    if (!fact || fact.includes("Нажми")) {
-        tg.showAlert("Сначала сгенерируй факт");
+    if (!fact || fact.toLowerCase().includes("сгенерируй")) {
+        if (tg?.showAlert) {
+            tg.showAlert("Сначала сгенерируй факт 🔮");
+        } else {
+            alert("Сначала сгенерируй факт 🔮");
+        }
         return;
     }
 
-    Telegram.WebApp.switchInlineQuery(
-        `🔮 Факт-Оракул:\n\n${fact}`,
-        ["users", "groups", "channels"]
-    );
-});
+    const shareText = `🔮 Факт-Оракул:\n\n${fact}`;
+
+    if (tg?.switchInlineQuery) {
+        tg.switchInlineQuery(shareText, ["users", "groups", "channels"]);
+    } else {
+        navigator.clipboard?.writeText(shareText);
+        alert("Факт скопирован. Открой Telegram и вставь его в чат.");
+    }
+}
+
+generateBtn?.addEventListener("click", generateFact);
+sendBtn?.addEventListener("click", shareFact);
 
 generateFact();
